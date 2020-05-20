@@ -1,5 +1,14 @@
 if (window.location.href.search("quizizz.com/join/game/") == -1 && window.location.href.search("gameType=") == -1) {
-    throw new Error("You aren't on a quizizz quiz. If you think this is an error please DM East_Arctica#9238 on discord!");
+    if (window.location.href.search("quizizz.com/join/pre-game/") != -1) {
+        alert("You cannot execute this while paused. If you are not paused please DM East_Arctica#9238 on discord!")
+        throw new Error("You cannot execute this while paused. If you think this is an error please DM East_Arctica#9238 on discord!");
+    } else if (window.location.href.search("quizizz.com/join/quiz/") != -1) {
+        alert("You need to start the game before running this script. If you think this is an error please DM East_Arctica#9238 on discord!")
+        throw new Error("You need to start the game before running this script. If you think this is an error please DM East_Arctica#9238 on discord!");
+    } else {
+        alert("You aren't on a quizizz quiz. If you think this is an error please DM East_Arctica#9238 on discord!")
+        throw new Error("You aren't on a quizizz quiz. If you think this is an error please DM East_Arctica#9238 on discord!");
+    }
 }
 
 if (typeof jQuery == 'undefined') {
@@ -7,6 +16,14 @@ if (typeof jQuery == 'undefined') {
     script.src = 'https://code.jquery.com/jquery-3.4.1.min.js';
     script.type = 'text/javascript';
     document.getElementsByTagName('head')[0].appendChild(script);
+}
+
+let WaitTime = prompt("Wpisz czas po którym automatycznie zaznaczy ODP.")
+if (Number(WaitTime) === NaN) {
+    alert("Nie podałeś dobrej liczby")
+    throw new Error("Zły numer");
+} else {
+    WaitTime = Number(WaitTime) * 1000
 }
 
 document.head.insertAdjacentHTML('beforeend', `<style type="text/css">
@@ -211,17 +228,16 @@ function Fix(s) {
 }
 
 function QuestionChangedLoop() {
-    setTimeout(function() {
+    setTimeout(function () {
         let NewNum = document.getElementsByClassName("current-question")[0]
         let RedemptionQues = document.getElementsByClassName("redemption-marker")[0]
         if (NewNum) {
             if (NewNum.innerHTML != CurrentQuestionNum) {
-                setTimeout(function() {
+                setTimeout(function () {
                     if (document.getElementsByClassName("typed-option-input")[0]) {
-                        let Set = GetSetData()
-                        let Question = GetQuestion(Set)
+                        let Question = GetQuestion(GetSetData())
                         if (Question == "Error: No question found") {
-                            alert("An error occurred, This should never happen. Please DM East_Arctica#9238 with your quiz link.")
+                            alert("Failed to find question!")
                         } else {
                             let Answer = GetAnswer(Question)
                             if (Array.isArray(Answer)) {
@@ -243,27 +259,37 @@ function QuestionChangedLoop() {
                         }
                     } else {
                         let Choices = document.getElementsByClassName("options-container")[0].children[0].children
-                        for (let i = 0; i < Choices.length; i++) {
-                            if (!Choices[i].classList.contains("emoji")) {
-                                let Choice = Choices[i].children[0].children[0].children[0].children[0]
-                                let Set = GetSetData()
-                                let Question = GetQuestion(Set)
-                                if (Question === "Error: No question found") {
-                                    alert("Failed to find question! This is a weird issue I don't understand, you will just have to answer this question legit for now.")
-                                } else {
+                        let Question = GetQuestion(GetSetData())
+                        if (Question === "Error: No question found") {
+                            setTimeout(function() {
+                                Question = GetQuestion(GetSetData())
+                            }, 500)
+                        }
+                        if (Question === "Error: No question found") {
+                            alert("Failed to find question!")
+                        } else {
+                            for (let i = 0; i < Choices.length; i++) {
+                                if (!Choices[i].classList.contains("emoji")) {
+                                    let Choice = Choices[i].children[0].children[0].children[0].children[0]
                                     let Answer = GetAnswer(Question)
                                     if (Array.isArray(Answer)) {
                                         // We are on a question with multiple answers
                                         for (let x = 0; x < Answer.length; x++) {
                                             if (Fix(Choice.innerHTML) == Answer[x]) {
-                                                Choice.innerHTML = "<correct-answer-x3Ca8B><u>" + Choice.innerHTML + "</u></correct-answer-x3Ca8B>"
+                                                setTimeout(function () {
+                                                    Choice.parentElement.click()
+                                                }, WaitTime)
                                             }
                                         }
                                     } else {
                                         if (Fix(Choice.innerHTML) == Answer) {
-                                            Choice.innerHTML = "<correct-answer-x3Ca8B><u>" + Choice.innerHTML + "</u></correct-answer-x3Ca8B>"
+                                            setTimeout(function () {
+                                                Choice.parentElement.click()
+                                            }, WaitTime)
                                         } else if (Choice.style.backgroundImage.slice(5, Choice.style.backgroundImage.length - 2).slice(0, Choice.style.backgroundImage.slice(5, Choice.style.backgroundImage.length - 2).search("/?w=") - 1) == GetAnswer(GetQuestion(GetSetData()))) {
-                                            Choice.innerHTML = "<correct-answer-x3Ca8B><u>Correct Answer</u></correct-answer-x3Ca8B>"
+                                            setTimeout(function () {
+                                                Choice.parentElement.click()
+                                            }, WaitTime)
                                         }
                                     }
                                 }
@@ -280,7 +306,9 @@ function QuestionChangedLoop() {
                     if (!Choices[i].classList.contains("emoji")) {
                         let Choice = Choices[i].children[0].children[0].children[0].children[0]
                         if (Fix(Choice.innerHTML) == GetAnswer(GetQuestion(GetSetData()))) {
-                            Choice.innerHTML = "<correct-answer-x3Ca8B><u>" + Choice.innerHTML + "</u></correct-answer-x3Ca8B>"
+                            setTimeout(function () {
+                                Choice.parentElement.click()
+                            }, WaitTime)
                         }
                     }
                 }
@@ -290,9 +318,14 @@ function QuestionChangedLoop() {
         QuestionChangedLoop()
     }, 100)
 }
-function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)) }
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms))
+}
+
 async function wait() {
     await sleep(1000);
     QuestionChangedLoop();
 }
+
 wait()
