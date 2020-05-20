@@ -21,7 +21,7 @@ if (found) {
     Close.innerHTML = "&times;"
     var btn = document.createElement("button")
     btn.id = "ModalButton"
-    btn.innerText = "View Answers"
+    btn.innerText = "Zobacz ODP"
     btn.onclick = function() {
         Modal.style.display = "block";
     }
